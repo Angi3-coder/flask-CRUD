@@ -39,9 +39,59 @@ class UserResource(Resource):
 
         return make_response(jsonify({"message": "User created succesfully"}), 201)
     
-
 api.add_resource (UserResource, '/users')
 
+#Resource to get by id
+class SingleUserResource(Resource):
+    #get user by id
+    def get(self, id):
+        user = User.query.get(id)
+
+        if not user:
+            return make_response(jsonify({"error": "User not Found"}), 404)
+        
+        user_data = {
+            "id": user.id,
+            "name": user.username,
+            "email": user.email
+        }
+
+        return make_response(jsonify(user_data))
+    
+
+    #Update
+    def put(self, id):
+        user = User.query.get(id)
+
+        #if user is not found
+        if not user:
+            return make_response(jsonify({"Error": "User not found"}), 404)
+        
+        data = request.get_json()
+
+        if not 'name' in data:
+            return make_response(jsonify({"Error": "Name cannot be empty"}))
+        
+        user.username = data['name']
+        user.email= data['email']
+
+        db.session.commit()
+
+        return make_response(jsonify({"Message": "User Updated Successfully"}), 200)
+    
+
+    def delete(self, id):
+        user = User.query.get(id)
+
+        if not user:
+            return make_response(jsonify({"Error":"User not found"}), 404)
+        
+        db.session.delete(user)
+        db.session.commit()
+
+        return make_response(jsonify({"Message":"User deleted Successfully"}), 200)
+
+api.add_resource(SingleUserResource, '/users/<int:id>')
 
 if __name__ == '__main__':
     app.run(debug=True)
